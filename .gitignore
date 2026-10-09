@@ -1,0 +1,41 @@
+# Public repository contents
+/*
+!/.gitignore
+!/README.md
+!/public/
+!/src/
+
+# Private development materials and local Codex instructions
+/local/
+AGENTS.md
+/AGENTS.override.md
+
+# Maintained public documents
+/public/*
+!/public/README.md
+!/public/PURPOSE.md
+!/public/PLAN.md
+!/public/CURRENT.md
+!/public/TIMELINE.md
+
+# ROS / colcon generated outputs
+build/
+install/
+log/
+
+# .NET example generated outputs and local caches
+bin/
+obj/
+.dotnet-home/
+.nuget-packages/
+
+# Python generated outputs
+__pycache__/
+*.py[cod]
+.venv/
+
+# Local IDE / OS files
+.vs/
+*.user
+.DS_Store
+Thumbs.db
