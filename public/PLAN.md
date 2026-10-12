@@ -27,15 +27,16 @@ development estimate.
 
 ## Current task
 
-Complete the state snapshot in D2 before moving to execution.
-For each valid message, retain positions, the original sample stamp, its clock
-domain, callback receive time, configured state source, and the actual topic.
+The D2 state snapshot stores positions, the original sample stamp, its clock
+domain, callback receive time, configured state source, and actual topic.
+Recorded runs include position changes and clean shutdown. Current publisher
+and active-state evidence still needs to be archived.
 Invalid input must preserve the previous snapshot in full.
 
 State-source configuration needs verification against the actual publisher.
 Unknown clock relationships must remain explicit until an age calculation is valid.
 
-Then validate and reorder named paths, distinguish geometric paths from timed
+Now validate and reorder named paths, distinguish geometric paths from timed
 trajectories, and define request, feedback, observation, and result contracts.
 Robot model selection and limits need their own checks.
 

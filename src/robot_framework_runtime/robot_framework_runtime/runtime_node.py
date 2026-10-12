@@ -1,4 +1,5 @@
 import math
+import time
 
 import rclpy
 from rclpy.qos import qos_profile_sensor_data
@@ -30,6 +31,8 @@ def main():
     node = rclpy.create_node('runtime')
     node.get_logger().info('runtime started')
 
+    state_source = node.declare_parameter("state_source", "unknown").value
+
     stats = {
         'received': 0,
         'accepted': 0,
@@ -38,6 +41,8 @@ def main():
     }
 
     def on_joint_state(msg: JointState):
+        received_monotonic_ns = time.monotonic_ns()
+
         stats['received'] += 1
 
         try:
@@ -50,16 +55,28 @@ def main():
             return
 
         stats['accepted'] += 1
-        stats['latest_valid'] = positions
+        stats['latest_valid'] = {
+            'positions': positions,
+            'sample_stamp': {
+                'sec': msg.header.stamp.sec, 
+                'nanosec': msg.header.stamp.nanosec
+            },
+            'sample_clock_domain': 'unknown',
+            'received_monotonic_ns': received_monotonic_ns,
+            'received_clock_domain': 'wsl_monotonic',
+            'source': state_source,
+            'topic': sub.topic_name
+        }
 
         summary = (
-            f"Received: {stats['received']} | Names: {len(msg.name)} | "
+            f'Received: {stats['received']} | Names: {len(msg.name)} | '
             f'Pos: {len(msg.position)} | '
             f'Time: {msg.header.stamp.sec}.{msg.header.stamp.nanosec:09d}s'
+            f'J4: {positions.get('panda_joint4')} rad'
         )
         node.get_logger().info(summary, throttle_duration_sec=3.0)
 
-    node.create_subscription(
+    sub = node.create_subscription(
         JointState,
         '/joint_states',
         on_joint_state,
