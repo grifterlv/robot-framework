@@ -6,8 +6,11 @@ explicit and reproducible.
 
 The current Python node starts independently, subscribes to `/joint_states`,
 validates joint positions, and retains the latest valid feedback snapshot.
-The snapshot includes positions keyed by joint name, the original sample stamp,
-clock-domain labels, callback-entry monotonic time, configured source, and topic.
+The saved callback now stores a typed frame with a standard joint-state message,
+the original sample stamp, clock-domain labels, callback-entry monotonic time,
+configured source, and resolved topic. An updated build passed, and a four-message
+probe verifies reception, rejection, and last-valid-frame preservation. Cleanup
+output and runtime exit code 0 are recorded. The log derives positions by joint name.
 Recorded final captures contain all snapshot fields. A later run records
 position feedback changes, SIGINT cleanup, and exit code 0; current publisher
 and active-state evidence remains open.
@@ -44,9 +47,45 @@ branches, seven preparation failures, four carrier-structure failures, retained
 context, and isolated inputs. A normal typed-feedback probe verifies named
 positions, preserved unavailable effort and metadata, copy isolation, and exit
 code 0. A boundary run verifies a valid frame, 17 rejected inputs, frozen outer
-fields, and input preservation after output edits. Moving validation into a
-shared module and integrating typed feedback into the callback are next.
-Observation and result contracts follow incrementally.
+fields, and input preservation after output edits. Position validation now lives
+in a shared module; source review and an import probe confirm the caller imports
+and shared function identity. The corrected typed callback has a successful
+build and a four-message probe ending with two accepted and two rejected frames.
+Its final snapshot retains the last valid frame and resolved topic. The cleanup
+exit code is recorded as 0. Synthetic Mesh payload outputs match two accepted
+cases, five rejected cases, and preserved valid input; that probe's exit status
+and elapsed time remain unrecorded. Observation metadata outputs match three
+accepted cases, seven rejected cases, and preserved Header input; `std_msgs`
+is declared, while that probe's exit status and elapsed time remain unrecorded.
+An `ObservationFrame` combined construction probe passed in 0.566 seconds with
+exit code 0. Factory outputs match active-context rejection and bidirectional
+Mesh/Header copy isolation; that probe's exit status and elapsed time remain
+unrecorded. Capture-transform structure validation passed in 0.560 seconds with
+exit code 0. Capture-time binding passed in 0.594 seconds with exit code 0;
+optional-pose carrier validation passed in 0.675 seconds with exit code 0.
+Factory pose copying passed in 0.536 seconds with exit code 0, including nested
+transform time and translation isolation. Capture-outcome combined probes passed
+five accepted constructions, twelve rejected combinations, outer-field freezing,
+and input preservation in 0.511 seconds with exit code 0. Valid empty frames,
+failed capture, and no received frame remain distinct. General result source
+review matches seven declared statuses and context, source, and reason checks.
+Reported combined outputs match seven accepted statuses, ten rejected inputs,
+preserved values and context, and frozen outer fields in 0.186 seconds; the probe's
+exit status remains unrecorded. Named joint-tolerance source review matches
+name, unit, finite positive value, and numeric-overflow checks. Its probes passed
+four accepted cases, fourteen rejections, preserved values, and frozen fields
+in 0.252 seconds with exit code 0. The model-binding unit-container mismatch is
+corrected; reported outputs match normal reordering, six rejections, and input
+preservation. That probe's elapsed time and exit status remain unrecorded.
+Timing configuration is now implemented; source review matches clock-domain and
+positive integer nanosecond rules. Its probes passed four normal constructions,
+ten rejected values, field freezing, and input preservation in 0.243 seconds with
+exit code 0. Combined contract traces and arrival/stop criteria follow.
+
+Observation validation now rejects same-frame offsets, unrepresentable numeric
+values, and malformed ROS Time stamps. All 65 observation and 16 path-validation
+regression cases passed on WSL Python 3.12.3 with ROS 2 Jazzy. These checks do
+not establish ROS ingress or motion execution.
 
 ## Project documents
 

@@ -1,30 +1,10 @@
-import math
 import time
 
 import rclpy
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import JointState
-
-
-def validate_joint_positions(msg: JointState) -> dict[str, float]:
-    if len(msg.name) == 0:
-        raise ValueError('Joint names list cannot be empty')
-
-    if '' in msg.name:
-        raise ValueError('Joint name cannot be empty')
-
-    if len(msg.name) != len(set(msg.name)):
-        raise ValueError('Duplicate joint names found')
-
-    if len(msg.name) != len(msg.position):
-        raise ValueError('Names and positions length mismatch')
-
-    for pos in msg.position:
-        if not math.isfinite(pos):
-            raise ValueError('Position contains invalid number (NaN or Inf)')
-
-    return dict(zip(msg.name, msg.position))
-
+from robot_framework_runtime.joint_state_validation import validate_joint_positions
+from robot_framework_runtime.feedback_frames import make_feedback_frame
 
 def main():
     rclpy.init()
@@ -46,7 +26,14 @@ def main():
         stats['received'] += 1
 
         try:
-            positions = validate_joint_positions(msg)
+            frame = make_feedback_frame(
+                state=msg,
+                source=state_source,
+                topic=sub.topic_name,
+                sample_clock_domain='unknown',
+                received_monotonic_ns=received_monotonic_ns,
+                received_clock_domain='wsl_monotonic',
+            )
         except ValueError as error:
             stats['rejected'] += 1
             node.get_logger().warning(
@@ -55,24 +42,17 @@ def main():
             return
 
         stats['accepted'] += 1
-        stats['latest_valid'] = {
-            'positions': positions,
-            'sample_stamp': {
-                'sec': msg.header.stamp.sec, 
-                'nanosec': msg.header.stamp.nanosec
-            },
-            'sample_clock_domain': 'unknown',
-            'received_monotonic_ns': received_monotonic_ns,
-            'received_clock_domain': 'wsl_monotonic',
-            'source': state_source,
-            'topic': sub.topic_name
-        }
+        stats['latest_valid'] = frame
+
+        positions = validate_joint_positions(frame.state)
+        state_msg = frame.state
 
         summary = (
-            f'Received: {stats['received']} | Names: {len(msg.name)} | '
-            f'Pos: {len(msg.position)} | '
-            f'Time: {msg.header.stamp.sec}.{msg.header.stamp.nanosec:09d}s'
-            f'J4: {positions.get('panda_joint4')} rad'
+            f"Received: {stats['received']} | "
+            f"Names: {len(state_msg.name)} | "
+            f"Pos: {len(state_msg.position)} | "
+            f"Time: {state_msg.header.stamp.sec}.{state_msg.header.stamp.nanosec:09d}s | "
+            f"J4: {positions.get('panda_joint4')} rad"
         )
         node.get_logger().info(summary, throttle_duration_sec=3.0)
 

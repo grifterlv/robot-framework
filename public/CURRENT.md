@@ -1,8 +1,8 @@
 # Current Status
 
-state_revision: 70
+state_revision: 105
 
-Updated: 2026-10-12.
+Updated: 2026-10-13.
 
 The runtime receives and validates joint positions. A synthetic four-message
 subscription probe passed. The author has now implemented a complete feedback
@@ -12,6 +12,88 @@ for that run. A subsequent runtime capture recorded 3706 accepted callbacks and
 a complete final feedback snapshot. A later run recorded changing joint-position
 feedback, 3180 accepted callbacks, SIGINT cleanup, and exit code 0. Current
 publisher and active-state evidence remains open. Motion execution is planned.
+
+## Observation validation correction
+
+Same-frame localization now requires zero translation and zero quaternion
+vector components; both identity quaternion signs retain the existing norm
+tolerance. Mesh and transform numeric checks translate integer-to-float
+overflow into `ValueError` without rewriting input fields. Header stamps must
+be standard `Time` messages with non-boolean signed int32 seconds and valid
+nanoseconds. The direct `builtin_interfaces` dependency is declared.
+
+Regression checks on WSL Python 3.12.3 with ROS 2 Jazzy reproduced 42 failures
+and 23 passes before correction. After correction, all 65 observation cases
+and all 16 existing path-validation cases passed (81 total, exit code 0).
+Checks cover valid signed-time boundaries, identity quaternion signs, raw and
+localized empty observations, copy isolation, and preservation after rejection.
+All 19 current Python files compiled in memory, and runtime-module import and
+dependency checks passed. These are source and synthetic-data checks; no build,
+ROS context, node, or motion request was started for this correction.
+
+Observation source SHA256 for the regression run:
+`ef44775c8da0926ac910947d32395ee4f4b72812d8843940797482a200cc6924`.
+
+## Mesh payload validation
+
+The author has implemented a standard `shape_msgs/Mesh` payload validator and
+declared `shape_msgs` and `geometry_msgs` runtime dependencies. Reported synthetic
+outputs match two accepted cases, five rejected cases, and preserved valid input.
+The native triangle index representation was `ndarray` with `uint32` elements.
+This probe's exit status and elapsed time have not been supplied. Observation
+metadata, capture outcomes, and integration acceptance remain separate work.
+
+The observation metadata helper has reported outputs matching three accepted
+cases, seven rejected cases, and preserved Header input. The direct `std_msgs`
+runtime dependency is now declared. This probe's exit status and elapsed time
+have not been supplied. An `ObservationFrame` combined probe passed normal and
+empty construction, six rejected inputs, blocked outer-field reassignment, and
+input preservation in 0.566 seconds with exit code 0. Direct construction shares
+the input Mesh and Header objects. Factory probe outputs match normal and empty
+construction, eight rejected inputs, active-context rejection before invalid
+payload handling, input preservation, and isolation from upstream and downstream
+edits. The factory probe's exit status and elapsed time have not been supplied.
+A capture-transform structure probe passed four accepted cases, nine rejected
+cases, and input preservation in 0.560 seconds with exit code 0. It covers frame
+matching, finite translation/rotation, unit-quaternion checks, sign inversion,
+and the declared numeric tolerance. A capture-time binding probe passed two
+accepted cases, ten rejected cases, and input preservation in 0.594 seconds with
+exit code 0. Integer stamps distinguished a 1 ns difference lost by floating-point
+seconds. Optional-pose carrier probes passed three normal constructions, ten
+rejected inputs, and input preservation in 0.675 seconds with exit code 0.
+Direct construction still shares the transform object. Factory probes passed the
+legacy raw call and normal/empty localized calls, six rejected inputs, context
+priority, input preservation, and three-object copy isolation including nested
+transform stamps and translation. The probe took 0.536 seconds with exit code 0.
+The capture-outcome module filename is now corrected. Combined probes passed
+five accepted constructions, twelve rejected combinations, outer-field freezing,
+and input preservation in 0.511 seconds with exit code 0. A valid empty frame
+remains captured; failed capture and no received frame remain distinct. Equal
+contexts are accepted even when they are different objects. General result source
+review matches seven declared statuses, typed context, nonblank source, and
+status-specific reason rules. Reported combined outputs match seven accepted
+statuses, ten rejected combinations, context and input preservation, unchanged
+string values, and blocked outer-field reassignment in 0.186 seconds. The result
+probe's exit status has not been supplied. Named joint-tolerance source review
+matches nonblank names, rad/m units, finite positive numeric values, boolean
+rejection, and overflow conversion to ValueError. Tolerance probes passed four
+accepted cases, fourteen rejected inputs, preserved input/name/integer values,
+and blocked field reassignment in 0.252 seconds with exit code 0. Model-binding
+source now supplies the required name-to-unit dictionary. Reported binding
+outputs match normal reordering, six rejected combinations, and input
+preservation; that probe's elapsed time and exit status have not been supplied.
+Timing-config source review matches the declared clock-domain and six positive
+integer nanosecond checks, including boolean rejection and preserved values.
+Timing probes passed four normal constructions, ten rejected values, field
+freezing, and input preservation in 0.243 seconds with exit code 0. Remaining
+standalone work is acceptance criteria, combined normal/failure contract traces,
+final build and installed-entry checks, current ROS publisher/lifecycle evidence,
+and evidence consolidation. Existing contract types are sufficient for these
+traces; no new core type is planned for the remaining standalone work.
+Required calibration declarations and current publisher
+evidence still need review. External model alignment and observation submission
+remain separate acceptance work. Live motion, cancellation, and sustained
+arrival/stop verification belong to the execution stage.
 
 ## Verified behavior
 
@@ -91,6 +173,11 @@ publisher and active-state evidence remains open. Motion execution is planned.
 - A feedback boundary run accepted a valid boundary frame, rejected 16 factory
   inputs and one invalid carrier, blocked outer-field assignment, and preserved
   the input after output edits. Exit code was 0; reported wall time was 0.711 seconds.
+- A subsequent package build reported exit code 0 and a 2.63-second summary.
+  A typed-callback probe recorded four received messages, two accepted frames,
+  two rejections, the resolved topic, and preservation of the last valid frame.
+  SIGINT cleanup output was captured; the author subsequently supplied runtime
+  exit code 0 for this run.
 
 See [Development timeline](TIMELINE.md) for dated milestones.
 
@@ -266,7 +353,24 @@ preservation after output edits. Callback integration remains pending. The
 checks use synthetic metadata, not publisher evidence.
 
 Feedback source SHA256 at this review:
-`bfe2ff96fe5d143230dd9ab4952d99e80f71320530cc7a293270ab69bf34d703`.
+`451d6c93694566401732b772580e181b468d48e6986555ce1d7e79020951edb6`.
+
+Position validation now lives in `joint_state_validation.py`. Source review
+confirms that both callers import it directly, with the previous validation
+rules preserved. An import probe confirmed independent shared-module loading,
+the same function object in both callers, the shared-module owner, and exit
+code 0. The saved runtime callback now constructs and stores a typed frame after
+successful validation and uses the subscription's resolved topic name. The
+updated build passed. A four-message probe verifies successful typed frames,
+optional-array and position rejections, and preservation of the last valid
+frame after the final rejection. Cleanup output and a subsequently supplied
+runtime exit code 0 complete this scoped callback check.
+
+Runtime source SHA256 at this callback review:
+`c1c7e3dab251d56184264841976da026a5888ee7515a30e3b4f1db95a055c02e`.
+
+Shared validation source SHA256 at this review:
+`d8a32ea52ee8803a11343945c7c01a5446b68ffc01a7c5fe164106a589fa7a68`.
 
 ## Open issues
 
@@ -276,8 +380,8 @@ Feedback source SHA256 at this review:
 - A trailing-whitespace issue remains; the earlier flake8 failures have not been rechecked.
 - The recorded four-message probe used a default zero sample stamp.
 - Current publisher identity, active-state output, steady update behavior, and freshness remain open.
-- Typed feedback has passing normal/rejection/boundary checks; callback integration is pending.
-- ROS ingress, observation, and result contracts remain planned.
+- Combined normal/failure contract traces and arrival/stop acceptance criteria remain incomplete.
+- ROS ingress and observation submission remain planned.
 - The new contracts module needs installation verification as the contracts are completed.
 - A recorded software demo shutdown had process failures; the synthetic probe does not
   establish a clean shutdown for that demo.
@@ -314,12 +418,18 @@ carrier-structure failures, context retention, and input isolation. Explicit
 untimed input retains its geometric path and pending timing status; timed input
 uses the existing ROS conversion. A typed feedback frame and factory are now
 saved and source-reviewed after the call correction, with a passing normal
-snapshot probe and passing rejection/boundary checks. The next task moves
-position validation into a shared module and updates both callers before
-callback integration, keeping dependencies free of a runtime/feedback import
-cycle. The frame reuses `JointState` and checks source, clock, and receive metadata while
-preserving unavailable optional effort. Observation and result contracts
-follow incrementally. Model identity
+snapshot probe and passing rejection/boundary checks. Shared position validation
+and both caller imports now have source review and a passing import probe.
+The callback uses the feedback factory, records the resolved topic, and updates
+the latest snapshot after validation succeeds. The updated build and a four-message
+reception/rejection probe passed, preserving the last valid typed frame after
+the final invalid input. The runtime exit code is now recorded as 0.
+Mesh payloads, frame/time/unit metadata, capture outcomes, result contracts,
+named joint tolerances, and timing configuration now have source reviews and
+scoped data probes. Combined contract traces, arrival/stop criteria, calibration
+evidence, and final installed-entry verification remain pending.
+The frame reuses `JointState` and checks source, clock, and receive metadata while
+preserving unavailable optional effort. Model identity
 belongs to the application request; `header.frame_id` identifies a coordinate
 frame. Untimed input remains explicitly pending time parameterization. This
 stage constructs data objects only; controller submission remains a later task.
@@ -496,3 +606,25 @@ and callback integration are next; no new runtime subscription behavior is infer
 Revision 70 records the point/time numeric-overflow correction: seven regression
 failures before the fix, all 16 cases passing afterward, and three successful
 outer request-rejection checks. No build, ROS node, or motion request was run.
+
+Revision 71 records shared position-validation extraction and passing source
+and import review: independent loading, shared function identity, shared owner,
+and exit code 0. Callback integration and build/runtime acceptance remain pending.
+
+Revision 72 records the saved typed callback and source review. Success and
+rejection updates match the intended flow; a hardcoded topic label needs
+correction before the new build and four-message runtime acceptance check.
+
+Revision 73 records the resolved-topic correction, successful build with a
+2.63-second summary, and four-message typed-callback probe: received=4,
+accepted=2, rejected=2, and last-valid-frame preservation. Cleanup output was
+captured; the runtime exit code has not yet been provided.
+
+Revision 74 records the author's supplemental runtime_exit=0 for that same run,
+completing the scoped typed-callback check. Standard Mesh payload validation
+is next; the complete observation/result contracts and acceptance configuration
+remain pending.
+
+Revision 105 records the three observation-validation corrections, the direct
+Time message dependency, 81 passing regression cases, and independent source
+and import review. Build, ROS ingress, and motion execution were not tested.

@@ -2,7 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 
 from sensor_msgs.msg import JointState
-from robot_framework_runtime.runtime_node import validate_joint_positions
+from robot_framework_runtime.joint_state_validation import validate_joint_positions
 
 @dataclass(frozen=True)
 class FeedbackFrame:
