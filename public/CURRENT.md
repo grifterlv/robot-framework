@@ -1,8 +1,8 @@
 # Current Status
 
-state_revision: 105
+state_revision: 117
 
-Updated: 2026-10-13.
+Updated: 2026-10-14.
 
 The runtime receives and validates joint positions. A synthetic four-message
 subscription probe passed. The author has now implemented a complete feedback
@@ -10,8 +10,15 @@ snapshot. The author reports that a rejected message preserved the snapshot in
 the two-message probe; raw final statistics and exit status have not been recorded
 for that run. A subsequent runtime capture recorded 3706 accepted callbacks and
 a complete final feedback snapshot. A later run recorded changing joint-position
-feedback, 3180 accepted callbacks, SIGINT cleanup, and exit code 0. Current
-publisher and active-state evidence remains open. Motion execution is planned.
+feedback, 3180 accepted callbacks, SIGINT cleanup, and exit code 0. A current typed-runtime run
+accepted 3859 callbacks, retained nine joint positions and unavailable effort
+values, recorded changing position feedback, and cleaned up after SIGINT with
+exit code 0. Its elapsed time was 47.255 seconds. A subsequent source query
+confirmed one JointStateBroadcaster publisher, active arm/hand controllers, and
+two active Panda hardware components using mock_components/GenericSystem.
+The runtime was absent from both the post-exit node list and subscription
+endpoints. The query took 3.169 seconds with exit code 0. The standalone D2
+state/path/contract acceptance is complete; motion execution is planned.
 
 ## Observation validation correction
 
@@ -85,13 +92,44 @@ preservation; that probe's elapsed time and exit status have not been supplied.
 Timing-config source review matches the declared clock-domain and six positive
 integer nanosecond checks, including boolean rejection and preserved values.
 Timing probes passed four normal constructions, ten rejected values, field
-freezing, and input preservation in 0.243 seconds with exit code 0. Remaining
-standalone work is acceptance criteria, combined normal/failure contract traces,
-final build and installed-entry checks, current ROS publisher/lifecycle evidence,
-and evidence consolidation. Existing contract types are sufficient for these
-traces; no new core type is planned for the remaining standalone work.
-Required calibration declarations and current publisher
-evidence still need review. External model alignment and observation submission
+freezing, and input preservation in 0.243 seconds with exit code 0.
+Admission-trace source review matches path/config checks before acceptance and
+payload clearing on rejection. The sample's syntax and time-key errors are now
+corrected. A later combined run verified accepted admission, timed-path kind,
+canonical names/positions, both tolerance mappings, and stale-session rejection
+with four cleared payload fields. It took 0.266 seconds with exit code 0.
+A subsequent combined run verified request identity, source, integer point times,
+timing configuration, and a typed synthetic feedback snapshot in 0.671 seconds
+with exit code 0. Assertions retained three unavailable effort values and all
+three feedback joints while projecting two controlled joints by name. Sample and
+receive clock domains remain distinct; this is not live subscription or arrival
+evidence. Observation/capture integration passed a combined WSL Python run in
+0.53 seconds with exit code 0. A corrected failure branch first prepares an
+accepted request, then retains that same context in its failed capture and fault
+result. Checks include normal and empty captured meshes, failed capture, no
+received frame, nested copy isolation, a 1 ns capture-time mismatch rejection,
+and stale-session rejection. These are synthetic contract checks, not sensor,
+motion, or clock-synchronization evidence. Arrival/stop, freshness, and timeout
+criteria are documented and reviewed through manual examples distinguishing
+target error, whole-window motion, and repeated samples. Synthetic Mesh frame,
+transform direction, and calibration limitations have also been reviewed.
+These are definition and declaration checks; sustained runtime criteria are not
+implemented. The current package build passed in a reported 2.97-second summary
+with exit code 0. An installed-environment probe passed all seven result statuses,
+canonical tolerances, four rejection boundaries, runtime entry callability, and
+the complete combined trace in 0.878 seconds with exit code 0. The ROS index
+resolved the cache install prefix and runtime entry; Python resolved the package
+through the cache build layout used by symlink installation. No runtime node was
+started by this probe. The current standard runtime has now passed sustained
+reception, position-change, and SIGINT/exit checks in a separate 47.255-second
+run with exit code 0. Publisher, Mock-source and post-exit graph checks have
+also passed, and documentation consolidation is complete. The standalone D2
+acceptance covers state reception, named-path conversion and application
+contracts; it does not establish controller submission, actual arrival/stop,
+physical sensing, or hardware performance. The source query reported duplicate
+RViz node names; this is retained as an environment follow-up, without process
+termination or an inferred process count.
+External model alignment and observation submission
 remain separate acceptance work. Live motion, cancellation, and sustained
 arrival/stop verification belong to the execution stage.
 

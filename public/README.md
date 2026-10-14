@@ -12,8 +12,12 @@ configured source, and resolved topic. An updated build passed, and a four-messa
 probe verifies reception, rejection, and last-valid-frame preservation. Cleanup
 output and runtime exit code 0 are recorded. The log derives positions by joint name.
 Recorded final captures contain all snapshot fields. A later run records
-position feedback changes, SIGINT cleanup, and exit code 0; current publisher
-and active-state evidence remains open.
+position feedback changes, SIGINT cleanup, and exit code 0. A current typed-node
+run accepted 3859 callbacks in 47.255 seconds, retained unavailable effort values,
+observed position changes, and exited with code 0 after SIGINT. Source checks
+confirmed one JointStateBroadcaster publisher and two active Panda components
+using mock_components/GenericSystem. The runtime was absent from the post-exit
+ROS node list and topic subscribers. Standalone D2 acceptance is complete.
 The throttled log now includes one simulator joint selected by name; missing
 joint data displays as `None`. This field has shown position changes in a
 recorded simulator session.
@@ -80,7 +84,22 @@ preservation. That probe's elapsed time and exit status remain unrecorded.
 Timing configuration is now implemented; source review matches clock-domain and
 positive integer nanosecond rules. Its probes passed four normal constructions,
 ten rejected values, field freezing, and input preservation in 0.243 seconds with
-exit code 0. Combined contract traces and arrival/stop criteria follow.
+exit code 0. A combined synthetic admission trace verified normal reordering,
+both tolerance mappings, and stale-session rejection with cleared payloads in
+0.266 seconds with exit code 0. A subsequent 0.671-second run with exit code 0
+verified identity/timing output and typed synthetic feedback, including named
+projection, retained unavailable effort values, and snapshot independence.
+Observation/capture integration passed a combined WSL run in 0.53 seconds with
+exit code 0. It verifies normal and empty captures, failed and missing captures,
+copy isolation, capture-time rejection, and context continuity from accepted
+preparation to a synthetic task fault. Arrival/stop criteria and synthetic Mesh
+calibration limitations are documented and reviewed. The current build passed
+with exit code 0 (2.97-second summary). An installed-environment probe passed
+seven result statuses, tolerance ordering, four rejection cases, and the combined
+trace in 0.878 seconds with exit code 0. Live-runtime source and lifecycle checks
+have passed; a subsequent source query took 3.169 seconds with exit code 0.
+Runtime implementation of sustained arrival/stop criteria, trajectory execution,
+and cancellation remains planned.
 
 Observation validation now rejects same-frame offsets, unrepresentable numeric
 values, and malformed ROS Time stamps. All 65 observation and 16 path-validation
